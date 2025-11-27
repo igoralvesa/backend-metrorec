@@ -16,10 +16,11 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 // Tipos baseados no JSON do ESP32
 interface EmbarcadoMessage {
   metro_count: number;        // pessoas no vagão
-  platform_count: number;     // pessoas na plataforma (Estação Central)
+  platform1_count: number;     // pessoas na plataforma (Estação Central)
+  platform2_count: number;     // pessoas na plataforma (Estação Norte)
   daily_total: number;        // total do dia
   timestamp: number;          // segundos desde boot do ESP32
-  event: 'train_board' | 'train_unboard' | 'platform_enter' | 'platform_exit' | 'none';
+  event: 'train_board' | 'train_unboard' | 'platform_enter_cat1' | 'platform_enter_cat2' | 'platform_exit_cat1' | 'platform_exit_cat2' | 'none';
 }
 
 // Formato enviado para o frontend
@@ -39,10 +40,10 @@ interface FrontendData {
   ultimaAtualizacao: string;
 }
 
-// Estado atual (TODOS os dados vêm da Estação Central)
+// Estado atual (dados das duas estações)
 let currentState: FrontendData = {
   estacaoCentral: {
-    aguardando: 0,      // platform_count do ESP32
+    aguardando: 0,      // platform1_count do ESP32
     totalHoje: 0,       // daily_total do ESP32
   },
   proximoTrem: {
@@ -50,8 +51,8 @@ let currentState: FrontendData = {
     total: 300,         // capacidade máxima (fixo, conforme seu código ESP32)
   },
   estacaoNorte: {
-    aguardando: 0,      // Zerado por enquanto (será implementado depois)
-    totalHoje: 0,       // Zerado por enquanto
+    aguardando: 0,      // platform2_count do ESP32
+    totalHoje: 0,       // daily_total do ESP32 (compartilhado)
   },
   ultimaAtualizacao: new Date().toLocaleTimeString('pt-BR'),
 };
@@ -71,16 +72,16 @@ function processarMensagem(msg: EmbarcadoMessage): void {
   console.log('\n📨 Mensagem recebida do embarcado:');
   console.log(JSON.stringify(msg, null, 2));
 
-  // TODOS os dados são da Estação Central
-  currentState.estacaoCentral.aguardando = msg.platform_count;
+  // Estação Central (platform1)
+  currentState.estacaoCentral.aguardando = msg.platform1_count;
   currentState.estacaoCentral.totalHoje = msg.daily_total;
   
   // Vagão (metrô)
   currentState.proximoTrem.ocupados = msg.metro_count;
   
-  // Estação Norte permanece zerada (será implementada depois)
-  // currentState.estacaoNorte.aguardando = 0;
-  // currentState.estacaoNorte.totalHoje = 0;
+  // Estação Norte (platform2)
+  currentState.estacaoNorte.aguardando = msg.platform2_count;
+  currentState.estacaoNorte.totalHoje = msg.daily_total; // compartilha o total diário
   
   // Atualiza timestamp
   currentState.ultimaAtualizacao = new Date().toLocaleTimeString('pt-BR');
