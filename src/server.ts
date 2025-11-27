@@ -7,7 +7,7 @@ config();
 // CloudAMQP usa AMQP (não MQTT para o backend Node.js)
 // MQTT settings (esp32 publishes to this topic)
 const MQTT_URL = process.env.MQTT_URL || 'mqtt://jackal.rmq.cloudamqp.com:1883';
-const MQTT_USER = process.env.MQTT_USER || 'czeerhjr';
+const MQTT_USER = process.env.MQTT_USER || 'czeerhjr:czeerhjr';
 const MQTT_PASS = process.env.MQTT_PASS || 'uWTrByb5tyInpDfBtyjEus9-OqiP4Kh3';
 const MQTT_TOPIC = process.env.MQTT_TOPIC || 'metro/state';
 const PORT = parseInt(process.env.PORT || '3001');
